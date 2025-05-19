@@ -247,6 +247,15 @@ def save_audio_chunk(audio_chunk, output_dir, chunk_index, sr=44100):
     file_path = os.path.join(output_dir, f"chunk_{chunk_index}.wav")
     sf.write(file_path, audio_chunk, sr)
 
+def load_all_audio(track_id):
+
+    mix_array = load_mixed_audio(track_id)
+    vocal_array = load_voice_audio(track_id)
+    violin_array = load_violin_audio(track_id)
+    mridangam_left_array = load_mridangam_left_audio(track_id)
+    mridangam_right_array = load_mridangam_right_audio(track_id)
+
+    return mix_array, vocal_array, violin_array, mridangam_left_array, mridangam_right_array
 
 
 def process_tracks_and_chunks(
