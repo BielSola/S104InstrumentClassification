@@ -17,8 +17,10 @@ def main():
     # Get the track ID from the user
     track_id = track.track_id
     # Get metadata for the track
-    metadata = dataset_creation.get_metadata(track_id)
-    print(f"Metadata: {metadata}")
+    y, sr = feature_extraction.load_audio(track.audio_path)
+    results = feature_extraction.compute_mfcc(y, sr)
+    print(f"MFCCs: {results}")
+    print(len(results))
     #mixed_array = dataset_creation.load_mixed_audio(track_id)
 
     #dataset_creation.play_audio(mixed_array)

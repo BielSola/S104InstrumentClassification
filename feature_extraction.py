@@ -64,7 +64,7 @@ def compute_rms(y, sr):
     """
     Compute the RMS energy of an audio signal using librosa.
     """
-    rms = librosa.feature.rms(y=None)[0]
+    rms = librosa.feature.rms(y)[0]
     frames = range(len(rms))
     times = librosa.frames_to_time(frames, sr=sr)
     return rms, times
