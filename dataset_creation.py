@@ -217,8 +217,8 @@ def detect_silence(audio_array, top_db=20):
     Returned array should be equal in length to input array.
     """
     # Detect non-silent intervals
-    non_silent_intervals = librosa.effects.split(audio_array, top_db=top_db)
-
+    non_silent_intervals = librosa.effects.split(audio_array, top_db=top_db) 
+    
     # Create an array of zeros with the same length as the audio array
     is_silent = np.zeros(len(audio_array))
 
@@ -259,21 +259,17 @@ def load_all_audio(track_id):
 
 
 def process_tracks_and_chunks(
-    saraga,
     track_ids,
-    chunk_size_seconds=5,
-    sr=44100,
-    output_directory="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/audio_chunks",
-    metadata_csv_path="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/metadata.csv"
+    chunk_size_seconds=0.5,
+    sr=44100
 ):
     """
     Process multiple tracks, split into chunks, save audio, and build metadata DataFrame.
     """
     metadata_df = pd.DataFrame(columns=[
-        "unique_chunk_id", "track_id", "raga", "performer", "performance",
-        "chunk_index", "contains_violin", "contains_vocal", "contains_mridangam"
+        "performance", "t1", "t2",
+     "contains_violin", "contains_vocal", "contains_mridangam"
     ])
-    os.makedirs(output_directory, exist_ok=True)
 
     chunk_global_index = 0
 
@@ -292,10 +288,9 @@ def process_tracks_and_chunks(
 
             # Split mixed audio into chunks
             mix_audio_chunks = split_audio_into_chunks(mix_array, chunk_size_seconds, sr=sr)
-            num_chunks = len(mix_audio_chunks)
 
             # For each chunk, annotate and save
-            for i, chunk in enumerate(mix_audio_chunks):
+            for i in enumerate(mix_audio_chunks):
                 chunk_start_sample = i * int(chunk_size_seconds * sr)
                 chunk_end_sample = (i + 1) * int(chunk_size_seconds * sr)
 
@@ -303,24 +298,14 @@ def process_tracks_and_chunks(
                 contains_vocal = chunk_contains_instrument(vocal_silence, chunk_start_sample, chunk_end_sample)
                 contains_mridangam = chunk_contains_instrument(mridangam_silence, chunk_start_sample, chunk_end_sample)
 
-                # Generate unique chunk id
-                unique_chunk_id = str(uuid.uuid4())
-
-                # Save audio chunk
-                file_path = os.path.join(output_directory, f"chunk_{unique_chunk_id}.wav")
-                sf.write(file_path, chunk, sr)
-
                 # Get track metadata
                 track_info = get_track_info(track_id)
 
                 # Build row
                 row_data = {
-                    "unique_chunk_id": unique_chunk_id,
-                    "track_id": track_id,
-                    "raga": track_info["raga"],
-                    "performer": track_info["performer"],
                     "performance": track_info["performance"],
-                    "chunk_index": chunk_global_index,
+                    "t1": chunk_start_sample,
+                    "t2": chunk_end_sample,
                     "contains_violin": contains_violin,
                     "contains_vocal": contains_vocal,
                     "contains_mridangam": contains_mridangam
@@ -332,8 +317,7 @@ def process_tracks_and_chunks(
             print(f"Error processing track {track_id}: {e}")
 
     # Save metadata
-    metadata_df.to_csv(metadata_csv_path, index=False)
-    print(f"Saved metadata to {metadata_csv_path} and audio chunks to {output_directory}")
+    return row_data
 
 
 def load_sample(index, metadata_path="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/metadata.csv", audio_dir="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/audio_chunks"):

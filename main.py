@@ -1,6 +1,8 @@
 import dataset_creation
 import feature_extraction
 import os
+from spleeter.separator import Separator
+
 
 def main():
     """
@@ -17,10 +19,8 @@ def main():
     # Get the track ID from the user
     track_id = track.track_id
     # Get metadata for the track
-    y, sr = feature_extraction.load_audio(track.audio_path)
-    results = feature_extraction.compute_mfcc(y, sr)
-    print(f"MFCCs: {results}")
-    print(len(results))
+    list_of_track_id = [track_id]
+    print(dataset_creation.process_tracks_and_chunks(list_of_track_id))
     #mixed_array = dataset_creation.load_mixed_audio(track_id)
 
     #dataset_creation.play_audio(mixed_array)
