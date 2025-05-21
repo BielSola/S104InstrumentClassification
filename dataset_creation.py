@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import soundfile as sf
 from IPython.display import Audio
-from spleeter.separator import Separator
+#from spleeter.separator import Separator
 import uuid
 import os
 import soundfile as sf
@@ -27,6 +27,16 @@ def create_dataset(data_home):
 
     return saraga
 
+def get_number_of_tracks(n):
+    list_of_track_id = []
+    
+    for _ in range(n):
+        track = saraga.choice_track()
+        track_id = track.track_id
+        if track_id not in list_of_track_id:
+            list_of_track_id.append(track_id)
+        
+    return list_of_track_id
 
 def get_metadata(track_id):
     """
@@ -121,7 +131,7 @@ def load_mixed_audio(track_id):
     audio_array, sr = librosa.load(track.audio_path, sr=44100)
     return audio_array
 
-def load_violin_audio(track_id, saraga):
+def load_violin_audio(track_id):
     """
     For <track_id>, return the isolated violin track
     """
@@ -201,15 +211,17 @@ def play_audio(audio_array, sr=44100, file_name='output.wav'):
     sf.write(file_name, audio_array, sr)
     print(f"Audio has been saved as '{file_name}'.")
 
+""""
 def separate_voice(audio_path, isolated_audio_output_path):
-    """
+    
     Apply spleeter source separation to input audio
-    """
+    
     # Load spleeter model for voice separation
     separator = Separator('spleeter:2stems')
 
     # Perform separation
     separator.separate_to_file(audio_path, isolated_audio_output_path)
+"""
 
 def detect_silence(audio_array, top_db=20):
     """
@@ -290,7 +302,7 @@ def process_tracks_and_chunks(
             mix_audio_chunks = split_audio_into_chunks(mix_array, chunk_size_seconds, sr=sr)
 
             # For each chunk, annotate and save
-            for i in enumerate(mix_audio_chunks):
+            for i, chunk in enumerate(mix_audio_chunks):
                 chunk_start_sample = i * int(chunk_size_seconds * sr)
                 chunk_end_sample = (i + 1) * int(chunk_size_seconds * sr)
 
@@ -299,16 +311,17 @@ def process_tracks_and_chunks(
                 contains_mridangam = chunk_contains_instrument(mridangam_silence, chunk_start_sample, chunk_end_sample)
 
                 # Get track metadata
-                track_info = get_track_info(track_id)
-
+                performance = get_performance(track_id)
+                title = performance[0]['title'] 
+                
                 # Build row
                 row_data = {
-                    "performance": track_info["performance"],
+                    "performance": title,
                     "t1": chunk_start_sample,
                     "t2": chunk_end_sample,
-                    "contains_violin": contains_violin,
-                    "contains_vocal": contains_vocal,
-                    "contains_mridangam": contains_mridangam
+                    "contains_violin": int(contains_violin),
+                    "contains_vocal": int(contains_vocal),
+                    "contains_mridangam": int(contains_mridangam)
                 }
                 metadata_df = pd.concat([metadata_df, pd.DataFrame([row_data])], ignore_index=True)
                 chunk_global_index += 1
@@ -317,7 +330,7 @@ def process_tracks_and_chunks(
             print(f"Error processing track {track_id}: {e}")
 
     # Save metadata
-    return row_data
+    return metadata_df
 
 
 def load_sample(index, metadata_path="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/metadata.csv", audio_dir="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/audio_chunks"):

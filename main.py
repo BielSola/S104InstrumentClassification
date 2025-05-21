@@ -1,7 +1,7 @@
 import dataset_creation
 import feature_extraction
 import os
-from spleeter.separator import Separator
+
 
 
 def main():
@@ -15,13 +15,13 @@ def main():
     dt_path = 'G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset'
     saraga = dataset_creation.create_dataset(dt_path)
 
-    track = saraga.choice_track()
-    # Get the track ID from the user
-    track_id = track.track_id
-    # Get metadata for the track
-    list_of_track_id = [track_id]
-    print(dataset_creation.process_tracks_and_chunks(list_of_track_id))
+    list_of_track_id = dataset_creation.get_number_of_tracks(1)
+    print(feature_extraction.get_features(list_of_track_id))
+    
+    #print(dataset_creation.process_tracks_and_chunks(list_of_track_id))
     #mixed_array = dataset_creation.load_mixed_audio(track_id)
+    
+
 
     #dataset_creation.play_audio(mixed_array)
     

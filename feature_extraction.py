@@ -1,3 +1,4 @@
+import dataset_creation
 import librosa
 import librosa.display
 import librosa.feature
@@ -105,3 +106,39 @@ def compute_mfcc(y, sr):
     frames = range(mfccs.shape[1])
     times = librosa.frames_to_time(frames, sr=sr)
     return mfccs, times
+
+def get_features(list_tracks_id, chunk_size=0.5, sr=44100):
+    """
+    Get features for a list of tracks.
+    """
+    features = []
+    for track_id in list_tracks_id:
+        # Load the audio file
+        y, sr = load_audio(track_id)
+        # Get the duration of the audio file
+        duration = get_audio_duration(y, sr)
+        # Calculate the number of chunks
+        num_chunks = int(duration / chunk_size)
+        # Loop through each chunk and extract features
+        for i in range(num_chunks):
+            start_time = i * chunk_size
+            end_time = (i + 1) * chunk_size
+            start_sample = int(start_time * sr)
+            end_sample = int(end_time * sr)
+            chunk = y[start_sample:end_sample]
+            rms, rms_times = compute_rms(chunk, sr)
+            zcr, zcr_times = compute_zcr(chunk, sr)
+            spectral_centroid, centroid_times = compute_spectral_centroid(chunk, sr)
+            bandwidth, bandwidth_times = compute_bandwidth(chunk, sr)
+            mfccs, mfcc_times = compute_mfcc(chunk, sr)
+            features.append({
+                'track_id': track_id,
+                'start_time': start_time,
+                'end_time': end_time,
+                'rms': rms,
+                'zcr': zcr,
+                'spectral_centroid': spectral_centroid,
+                'bandwidth': bandwidth,
+                'mfccs': mfccs
+            })
+    return features
