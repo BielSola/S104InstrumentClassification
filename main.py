@@ -1,6 +1,6 @@
 import dataset_creation
 import feature_extraction
-import os
+import sample_data
 
 
 
@@ -16,7 +16,7 @@ def main():
     saraga = dataset_creation.create_dataset(dt_path)
 
     list_of_track_id = dataset_creation.get_number_of_tracks(1)
-    print(feature_extraction.get_features(list_of_track_id))
+    print(sample_data.combine_features_and_metadata(list_of_track_id))
     
     #print(dataset_creation.process_tracks_and_chunks(list_of_track_id))
     #mixed_array = dataset_creation.load_mixed_audio(track_id)

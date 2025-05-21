@@ -29,13 +29,23 @@ def create_dataset(data_home):
 
 def get_number_of_tracks(n):
     list_of_track_id = []
-    
-    for _ in range(n):
+    attempts = 0
+    max_attempts = n * 10  # Prevent infinite loop if not enough valid tracks
+
+    while len(list_of_track_id) < n and attempts < max_attempts:
         track = saraga.choice_track()
         track_id = track.track_id
-        if track_id not in list_of_track_id:
+        # Check all required audio paths
+        if (track.audio_violin_path is not None and
+            track.audio_vocal_path is not None and
+            track.audio_mridangam_left_path is not None and
+            track.audio_mridangam_right_path is not None and
+            track_id not in list_of_track_id):
             list_of_track_id.append(track_id)
-        
+        attempts += 1
+
+    if len(list_of_track_id) < n:
+        print(f"Warning: Only found {len(list_of_track_id)} tracks with all required audio stems.")
     return list_of_track_id
 
 def get_metadata(track_id):
@@ -272,7 +282,7 @@ def load_all_audio(track_id):
 
 def process_tracks_and_chunks(
     track_ids,
-    chunk_size_seconds=0.5,
+    chunk_size_seconds=0.25,
     sr=44100
 ):
     """
@@ -303,8 +313,8 @@ def process_tracks_and_chunks(
 
             # For each chunk, annotate and save
             for i, chunk in enumerate(mix_audio_chunks):
-                chunk_start_sample = i * int(chunk_size_seconds * sr)
-                chunk_end_sample = (i + 1) * int(chunk_size_seconds * sr)
+                chunk_start_sample = i * int(chunk_size_seconds*sr)
+                chunk_end_sample = (i + 1) * int(chunk_size_seconds*sr)
 
                 contains_violin = chunk_contains_instrument(violin_silence, chunk_start_sample, chunk_end_sample)
                 contains_vocal = chunk_contains_instrument(vocal_silence, chunk_start_sample, chunk_end_sample)
