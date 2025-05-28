@@ -12,8 +12,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import soundfile as sf
 from IPython.display import Audio
-#from spleeter.separator import Separator
-import uuid
 import os
 import soundfile as sf
 
@@ -27,7 +25,7 @@ def create_dataset(data_home):
 
     return saraga
 
-def get_number_of_tracks(n):
+def get_number_of_tracks(n=10):
     list_of_track_id = []
     attempts = 0
     max_attempts = n * 10  # Prevent infinite loop if not enough valid tracks
@@ -47,6 +45,7 @@ def get_number_of_tracks(n):
     if len(list_of_track_id) < n:
         print(f"Warning: Only found {len(list_of_track_id)} tracks with all required audio stems.")
     return list_of_track_id
+
 
 def get_metadata(track_id):
     """
@@ -289,7 +288,7 @@ def process_tracks_and_chunks(
     Process multiple tracks, split into chunks, save audio, and build metadata DataFrame.
     """
     metadata_df = pd.DataFrame(columns=[
-        "performance", "t1", "t2",
+        "song", "t1", "t2",
      "contains_violin", "contains_vocal", "contains_mridangam"
     ])
 
@@ -321,12 +320,11 @@ def process_tracks_and_chunks(
                 contains_mridangam = chunk_contains_instrument(mridangam_silence, chunk_start_sample, chunk_end_sample)
 
                 # Get track metadata
-                performance = get_performance(track_id)
-                title = performance[0]['title'] 
+                song = track_id
                 
                 # Build row
                 row_data = {
-                    "performance": title,
+                    "song": song,
                     "t1": chunk_start_sample,
                     "t2": chunk_end_sample,
                     "contains_violin": int(contains_violin),
@@ -342,23 +340,43 @@ def process_tracks_and_chunks(
     # Save metadata
     return metadata_df
 
+def select_90_chunks_per_track(metadata_df):
+    """
+    For each track (performance), select up to 30 unique chunks for each instrument (violin, vocal, mridangam),
+    maximizing the number of unique (non-overlapping) chunks per instrument. Returns a new DataFrame with up to 90 chunks per track.
+    """
+    selected_rows = []
+    for song, group in metadata_df.groupby('song'):
+        group = group.copy()
+        # Find chunks for each instrument
+        violin_chunks = group[group['contains_violin'] == 1]
+        vocal_chunks = group[group['contains_vocal'] == 1]
+        mridangam_chunks = group[group['contains_mridangam'] == 1]
 
-def load_sample(index, metadata_path="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/metadata.csv", audio_dir="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/audio_chunks"):
+        # Select up to 30 unique chunks for each instrument, avoiding overlap if possible
+        used_indices = set()
+        def pick_chunks(df, n, used):
+            # Prefer chunks not already used
+            unused = df[~df.index.isin(used)]
+            pick = unused.sample(min(n, len(unused)), random_state=42)
+            used.update(pick.index)
+            # If not enough, allow overlap
+            if len(pick) < n:
+                needed = n - len(pick)
+                overlap = df[df.index.isin(used)]
+                if not overlap.empty:
+                    pick = pd.concat([pick, overlap.sample(min(needed, len(overlap)), random_state=42)])
+            return pick
 
-    metadata_df = pd.read_csv(metadata_path)
+        violin_sel = pick_chunks(violin_chunks, 30, used_indices)
+        vocal_sel = pick_chunks(vocal_chunks, 30, used_indices)
+        mridangam_sel = pick_chunks(mridangam_chunks, 30, used_indices)
 
-    sample_row = metadata_df[metadata_df["chunk_index"] == index].iloc[0]
+        selected_rows.append(pd.concat([violin_sel, vocal_sel, mridangam_sel]))
 
-    audio_file_path = os.path.join(audio_dir, f"chunk_{index}.wav")
+    result_df = pd.concat(selected_rows).sort_values(['song', 't1']).reset_index(drop=True)
+    return result_df
 
-    audio_array, sr = librosa.load(audio_file_path, sr=44100)
 
-    return audio_array, sr
 
-def get_metadata(index, metadata_path="G:/.shortcut-targets-by-id/17yphSXB2IgKWLJF-VDo9xJDWWM2e6mkH/S104/dataset/metadata.csv"):
-    metadata_df = pd.read_csv(metadata_path)
-
-    metadata = metadata_df[metadata_df["chunk_index"] == index].iloc[0]
-
-    return metadata
 

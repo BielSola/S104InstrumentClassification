@@ -69,7 +69,7 @@ def compute_rms(y, sr):
     rms = librosa.feature.rms(y=y)[0]
     frames = range(len(rms))
     times = librosa.frames_to_time(frames, sr=sr)
-    return rms, times
+    return rms.mean(), times
 
 def compute_zcr(y, sr):
     """
@@ -78,7 +78,7 @@ def compute_zcr(y, sr):
     zcr = librosa.feature.zero_crossing_rate(y)[0]
     frames = range(len(zcr))
     times = librosa.frames_to_time(frames, sr=sr)
-    return zcr, times
+    return zcr.mean(), times
 
 def compute_spectral_centroid(y, sr):
     """
@@ -87,7 +87,7 @@ def compute_spectral_centroid(y, sr):
     spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
     frames = range(len(spectral_centroid))
     times = librosa.frames_to_time(frames, sr=sr)
-    return spectral_centroid, times
+    return spectral_centroid.mean(), times
 
 def compute_bandwidth(y, sr):
     """
@@ -96,7 +96,7 @@ def compute_bandwidth(y, sr):
     bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
     frames = range(len(bandwidth))
     times = librosa.frames_to_time(frames, sr=sr)
-    return bandwidth, times
+    return bandwidth.mean(), times
 
 def compute_mfcc(y, sr):
     """
@@ -105,16 +105,17 @@ def compute_mfcc(y, sr):
     mfccs = librosa.feature.mfcc(y=y, sr=sr)
     frames = range(mfccs.shape[1])
     times = librosa.frames_to_time(frames, sr=sr)
-    return mfccs, times
+    return mfccs.mean(axis=1), times
+
+
+
+##------
 
 def get_features(list_tracks_id, chunk_size=0.25, sr=44100):
     """
     Get features for a list of tracks.
     """
-    metadata_df = pd.DataFrame(columns=[
-        "performance", "t1", "t2",
-     "rms", "zcr", "spectral_centroid", "bandwidth", "mfccs"
-    ])
+    features_list = []  # Collect features in a list
     for track_id in list_tracks_id:
         # Load the audio file
         y = dataset_creation.load_mixed_audio(track_id)
@@ -129,22 +130,24 @@ def get_features(list_tracks_id, chunk_size=0.25, sr=44100):
             start_sample = int(start_time * sr)
             end_sample = int(end_time * sr)
             chunk = y[start_sample:end_sample]
-            rms = compute_rms(chunk, sr)
-            zcr = compute_zcr(chunk, sr)
-            spectral_centroid = compute_spectral_centroid(chunk, sr)
-            bandwidth = compute_bandwidth(chunk, sr)
-            mfccs = compute_mfcc(chunk, sr)
-            performance = dataset_creation.get_performance(track_id)
-            title = performance[0]['title'] 
+            rms, _ = compute_rms(chunk, sr)
+            zcr, _ = compute_zcr(chunk, sr)
+            spectral_centroid, _ = compute_spectral_centroid(chunk, sr)
+            bandwidth, _ = compute_bandwidth(chunk, sr)
+            mfccs, _ = compute_mfcc(chunk, sr)
+            mfcc_d = {f"mfcc{i+1}":float(mfccs[i]) for i in range(len(mfccs))}
             features = {
-                'performance': title,
+                'song': track_id,
                 't1': start_sample,
                 't2': end_sample,
-                'rms': rms,
-                'zcr': zcr,
-                'spectral_centroid': spectral_centroid,
-                'bandwidth': bandwidth,
-                'mfccs': mfccs
+                'rms': float(rms),
+                'zcr': float(zcr),
+                'spectral_centroid': float(spectral_centroid),
+                'bandwidth': float(bandwidth),
             }
-            metadata_df = pd.concat([metadata_df, pd.DataFrame([features])], ignore_index=True)
+            features.update(mfcc_d)
+            features_list.append(features)  # Add to list
+    
+    # Create DataFrame ONCE from the complete list
+    metadata_df = pd.DataFrame(features_list)
     return metadata_df
