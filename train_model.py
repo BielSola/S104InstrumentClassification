@@ -2,6 +2,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import sample_data
+import joblib
 
 
 def train_model(list_of_tracks, what_to_predict='contains_violin'):
@@ -26,6 +27,13 @@ def train_model(list_of_tracks, what_to_predict='contains_violin'):
     print("Accuracy:", accuracy_score(y_test, y_pred))
     print("Confusion matrix:\n", confusion_matrix(y_test, y_pred))
     print("Classification report:\n", classification_report(y_test, y_pred))
+    
+    if what_to_predict == 'contains_violin':
+        return joblib.dump(clf, 'violin_model.pkl')
+    elif what_to_predict == 'contains_vocal':
+        return joblib.dump(clf, 'vocal_model.pkl')
+    elif what_to_predict == 'contains_mridangam':
+        return joblib.dump(clf, 'mridangam_model.pkl')
 
 
 
