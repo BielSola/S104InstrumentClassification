@@ -31,7 +31,9 @@ def get_number_of_tracks(n=10):
     max_attempts = n * 10  # Prevent infinite loop if not enough valid tracks
 
     while len(list_of_track_id) < n and attempts < max_attempts:
+        print(f"Attempt {attempts + 1} to find a valid track...")
         track = saraga.choice_track()
+        print(f"Selected track ID: {track.track_id}")
         track_id = track.track_id
         # Check all required audio paths
         if (track.audio_violin_path is not None and
@@ -40,6 +42,7 @@ def get_number_of_tracks(n=10):
             track.audio_mridangam_right_path is not None and
             track_id not in list_of_track_id):
             list_of_track_id.append(track_id)
+            print(f"Track {track_id} added to the list.")
         attempts += 1
 
     if len(list_of_track_id) < n:
@@ -298,7 +301,7 @@ def process_tracks_and_chunks(
         try:
             # Load all audio arrays
             mix_array, vocal_array, violin_array, mridangam_left_array, mridangam_right_array = load_all_audio(track_id)
-
+           
             # Detect silence
             violin_silence = detect_silence(violin_array)
             vocal_silence = detect_silence(vocal_array)
@@ -306,9 +309,11 @@ def process_tracks_and_chunks(
                 detect_silence(mridangam_left_array),
                 detect_silence(mridangam_right_array)
             ).astype(int)
+          
 
             # Split mixed audio into chunks
             mix_audio_chunks = split_audio_into_chunks(mix_array, chunk_size_seconds, sr=sr)
+           
 
             # For each chunk, annotate and save
             for i, chunk in enumerate(mix_audio_chunks):
@@ -368,9 +373,9 @@ def select_90_chunks_per_track(metadata_df):
                     pick = pd.concat([pick, overlap.sample(min(needed, len(overlap)), random_state=42)])
             return pick
 
-        violin_sel = pick_chunks(violin_chunks, 30, used_indices)
-        vocal_sel = pick_chunks(vocal_chunks, 30, used_indices)
-        mridangam_sel = pick_chunks(mridangam_chunks, 30, used_indices)
+        violin_sel = pick_chunks(violin_chunks, 500, used_indices)
+        vocal_sel = pick_chunks(vocal_chunks, 500, used_indices)
+        mridangam_sel = pick_chunks(mridangam_chunks, 500, used_indices)
 
         selected_rows.append(pd.concat([violin_sel, vocal_sel, mridangam_sel]))
 
