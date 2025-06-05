@@ -169,19 +169,16 @@ def get_features2(path, chunk_size=0.25, sr=44100):
     num_chunks = int(duration / chunk_size)
     # Loop through each chunk and extract features
     for i in range(num_chunks):
-        print(f"Processing chunk {i+1}/{num_chunks} for track")
         start_time = i * chunk_size
         end_time = (i + 1) * chunk_size
         start_sample = int(start_time * sr)
         end_sample = int(end_time * sr)
-        chunk = y[start_sample:end_sample]
-        print("Compute features for chunk")
+        chunk = y[start_sample:end_sample] 
         rms, _ = compute_rms(chunk, sr)
         zcr, _ = compute_zcr(chunk, sr)
         spectral_centroid, _ = compute_spectral_centroid(chunk, sr)
         bandwidth, _ = compute_bandwidth(chunk, sr)
         mfccs, _ = compute_mfcc(chunk, sr)
-        print("Features computed for chunk")
         mfcc_d = {f"mfcc{i+1}":float(mfccs[i]) for i in range(len(mfccs))}
         features = {
             'song': path,
@@ -193,7 +190,6 @@ def get_features2(path, chunk_size=0.25, sr=44100):
             'bandwidth': float(bandwidth),
             }
         features.update(mfcc_d)
-        print("Features dictionary created for chunk")
         features_list.append(features)  # Add to list
     
     # Create DataFrame ONCE from the complete list

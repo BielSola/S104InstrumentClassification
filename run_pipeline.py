@@ -18,7 +18,6 @@ def convert(result1, result2, result3):
     return df
         
 def run(audio_path, save_csv_path=None):
-    audio = feature_extraction.load_audio(audio_path)
     features = feature_extraction.get_features2(audio_path, chunk_size=0.25, sr=44100)
 
     # Load violin model
@@ -32,10 +31,12 @@ def run(audio_path, save_csv_path=None):
         mridangam_model = pickle.load(f)
     
     # Remove columns not used in training
-    features_for_model = features.drop(columns=['song', 't1', 't2'], errors='ignore')
-    result_violin = violin_model.predict(features_for_model)
-    result_voice = vocal_model.predict(features_for_model)
-    result_mridangam = mridangam_model.predict(features_for_model)
+    features_for_violin_model = features.drop(columns=['song', 't1', 't2',"zcr", "spectral_centroid", "bandwidth"], errors='ignore')
+    features_for_vocal_model = features.drop(columns=['song', 't1', 't2', "spectral_centroid", "bandwidth"], errors='ignore')
+    features_for_mridangam_model = features.drop(columns=['song', 't1', 't2',"zcr", "spectral_centroid", "bandwidth"], errors='ignore')
+    result_violin = violin_model.predict(features_for_violin_model)
+    result_voice = vocal_model.predict(features_for_vocal_model)
+    result_mridangam = mridangam_model.predict(features_for_mridangam_model)
     
     final = convert(result_violin, result_voice, result_mridangam)
     

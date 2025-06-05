@@ -2,8 +2,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import sample_data
-
-
+import pandas as pd
+import pickle
 
 def train_model(list_of_tracks, what_to_predict='contains_violin'):
     print("0")
@@ -31,13 +31,8 @@ def train_model(list_of_tracks, what_to_predict='contains_violin'):
     print("Classification report:\n", classification_report(y_test, y_pred))
     
 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-import pandas as pd
-import pickle
 
-def train_model(csv_file_path, what_to_predict='contains_violin'):
+def train_model_csv(csv_file_path, what_to_predict='contains_violin'):
     """
     Train a model using data from a CSV file.
     
@@ -55,14 +50,15 @@ def train_model(csv_file_path, what_to_predict='contains_violin'):
         print(f"Error loading CSV file: {e}")
         return
 
-    # Prepare features and target
-    X = metadata_df.drop(['song', 't1', 't2', 'contains_violin', 'contains_vocal', 'contains_mridangam'], axis=1)
-    
+    #Prepare features and target variable    
     if what_to_predict == 'contains_violin':
+        X = metadata_df.drop(['song', 't1', 't2',"zcr", "spectral_centroid", "bandwidth", 'contains_violin', 'contains_vocal', 'contains_mridangam'], axis=1)
         y = metadata_df['contains_violin']
     elif what_to_predict == 'contains_vocal':
+        X = metadata_df.drop(['song', 't1', 't2', "spectral_centroid", "bandwidth", 'contains_violin', 'contains_vocal', 'contains_mridangam'], axis=1)
         y = metadata_df['contains_vocal']
     elif what_to_predict == 'contains_mridangam':
+        X = metadata_df.drop(['song', 't1', 't2',"zcr", "spectral_centroid", "bandwidth", 'contains_violin', 'contains_vocal', 'contains_mridangam'], axis=1)
         y = metadata_df['contains_mridangam']
     else:
         print("Invalid prediction target. Choose 'contains_violin', 'contains_vocal', or 'contains_mridangam'")
