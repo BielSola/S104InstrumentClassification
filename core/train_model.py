@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-import sample_data
+import core.sample_data as sample_data
 import pandas as pd
 import pickle
 

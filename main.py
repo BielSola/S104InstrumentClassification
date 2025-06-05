@@ -1,9 +1,9 @@
-import dataset_creation
-import feature_extraction
-import sample_data
-import train_model
-import run_pipeline
-import feature_selection
+import core.dataset_creation as dataset_creation
+import core.feature_extraction as feature_extraction
+import core.sample_data as sample_data
+import core.train_model as train_model
+import core.run_pipeline as run_pipeline
+import core.feature_selection as feature_selection
 
 
 

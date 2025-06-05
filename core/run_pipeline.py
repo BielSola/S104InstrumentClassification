@@ -1,4 +1,4 @@
-import feature_extraction
+import core.feature_extraction as feature_extraction
 import pickle
 import pandas as pd
 
@@ -21,13 +21,13 @@ def run(audio_path, save_csv_path=None):
     features = feature_extraction.get_features2(audio_path, chunk_size=0.25, sr=44100)
 
     # Load violin model
-    with open('violin_model.pkl', 'rb') as f:
+    with open('models/violin_model.pkl', 'rb') as f:
         violin_model = pickle.load(f)
     
-    with open('vocal_model.pkl', 'rb') as f:
+    with open('models/vocal_model.pkl', 'rb') as f:
         vocal_model = pickle.load(f)
     
-    with open('mridangam_model.pkl', 'rb') as f:
+    with open('models/mridangam_model.pkl', 'rb') as f:
         mridangam_model = pickle.load(f)
     
     # Remove columns not used in training

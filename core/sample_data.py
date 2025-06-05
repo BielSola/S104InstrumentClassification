@@ -1,5 +1,5 @@
-import dataset_creation
-import feature_extraction
+import core.dataset_creation as dataset_creation
+import core.feature_extraction as feature_extraction
 import pandas as pd
     
 def combine_features_and_metadata(track_ids, chunk_size=0.25, sr=44100, save_csv_path="SampleData.csv"):

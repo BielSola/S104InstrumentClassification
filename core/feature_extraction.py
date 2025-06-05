@@ -1,4 +1,4 @@
-import dataset_creation
+import core.dataset_creation as dataset_creation
 import librosa
 import librosa.display
 import librosa.feature
